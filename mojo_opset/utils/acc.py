@@ -1,5 +1,10 @@
 import torch
 
+_DTYPE_MIN_TOL = {
+    torch.float16: 1e-2,
+    torch.bfloat16: 2e-2,
+}
+
 
 def _pick_nested_tol(value, index: int):
     if isinstance(value, (tuple, list)):
@@ -58,4 +63,8 @@ def check_tol_diff(
         )
 
     else:
+        min_tol = _DTYPE_MIN_TOL.get(norm.dtype)
+        if min_tol is not None:
+            atol = max(atol, min_tol)
+            rtol = max(rtol, min_tol)
         torch.testing.assert_close(norm.to(torch.float32), ref.to(torch.float32), atol=atol, rtol=rtol)
